@@ -10,6 +10,20 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class Util {
+    private static final Connection connection;
+
+    static {
+        try {
+            connection = getMySQLConnection();
+        } catch (SQLException | ClassNotFoundException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Connection getConnection() {
+        return connection;
+    }
+
     public static Connection getMySQLConnection() throws SQLException,
             ClassNotFoundException, IOException {
         Properties props = new Properties();
@@ -24,6 +38,7 @@ public class Util {
         return getMySQLConnection(hostName, dbName, userName, password);
     }
 
+
     public static Connection getMySQLConnection(String hostName, String dbName,
                                                 String userName, String password) throws SQLException,
             ClassNotFoundException {
@@ -34,5 +49,11 @@ public class Util {
 
         return DriverManager.getConnection(connectionURL, userName,
                 password);
+    }
+
+    public static void closeMySQLConnection() throws SQLException {
+        if (connection!=null && !connection.isClosed()) {
+            connection.close();
+        }
     }
 }

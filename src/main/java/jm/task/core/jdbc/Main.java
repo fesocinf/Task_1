@@ -12,19 +12,10 @@ import java.util.List;
 
 public class Main {
     private static final UserService userService = new UserServiceImpl();
-    public static Connection getMyConnection() throws SQLException,
-            ClassNotFoundException, IOException {
 
-        return Util.getMySQLConnection();
-    }
+    public static void main(String[] args) throws SQLException {
 
-    public static void main(String[] args) throws SQLException,
-            ClassNotFoundException, IOException {
-
-        Connection conn = getMyConnection();
-        System.out.println("Соединение с базой: " + conn.getCatalog());
-
-        List<User> userList = new ArrayList<User>() {
+        List<User> userList = new ArrayList<>() {
             {
                 {
                     add(new User("DIMA", "RYABKOV", (byte) 19));
@@ -50,5 +41,6 @@ public class Main {
 
         userService.cleanUsersTable();
         userService.dropUsersTable();
+        Util.closeMySQLConnection();
     }
 }
