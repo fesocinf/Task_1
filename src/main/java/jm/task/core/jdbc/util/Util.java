@@ -1,5 +1,12 @@
 package jm.task.core.jdbc.util;
 
+import jm.task.core.jdbc.model.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+
+import javax.imageio.spi.ServiceRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -11,6 +18,15 @@ import java.util.Properties;
 
 public class Util {
     private static final Connection connection;
+    private static final Session session;
+
+    static {
+        Configuration configuration = new Configuration().configure();
+        configuration.addAnnotatedClass(User.class);
+
+        StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+        session = configuration.buildSessionFactory(builder.build()).openSession();
+    }
 
     static {
         try {
@@ -22,6 +38,9 @@ public class Util {
 
     public static Connection getConnection() {
         return connection;
+    }
+    public static Session getSession() {
+        return session;
     }
 
     public static Connection getMySQLConnection() throws SQLException,
@@ -54,6 +73,12 @@ public class Util {
     public static void closeMySQLConnection() throws SQLException {
         if (connection!=null && !connection.isClosed()) {
             connection.close();
+        }
+    }
+
+    public static void closeHibernateSession() {
+        if (session!=null && session.isOpen()) {
+            session.close();
         }
     }
 }
