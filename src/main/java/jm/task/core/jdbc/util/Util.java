@@ -19,7 +19,7 @@ import java.util.Properties;
 
 public class Util {
     private static final Connection connection;
-    private static final Session session;
+    private static final SessionFactory session;
     private static final Properties properties;
     private static final String hostName;
     private static final String dbName;
@@ -59,7 +59,7 @@ public class Util {
 
         StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
 
-        session = configuration.buildSessionFactory(builder.build()).openSession();
+        session = configuration.buildSessionFactory(builder.build());
     }
 
     static {
@@ -73,7 +73,7 @@ public class Util {
     public static Connection getConnection() {
         return connection;
     }
-    public static Session getSession() {
+    public static SessionFactory getSessionFactory() {
         return session;
     }
     public static void loadProperties(Properties properties) throws IOException {

@@ -13,7 +13,7 @@ import java.util.List;
 public class Main {
     private static final UserService userService = new UserServiceImpl();
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
 
         List<User> userList = new ArrayList<>() {
             {
@@ -41,6 +41,6 @@ public class Main {
 
         userService.cleanUsersTable();
         userService.dropUsersTable();
-        Util.closeMySQLConnection();
+        Util.closeHibernateSession();
     }
 }
