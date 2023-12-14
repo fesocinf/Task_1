@@ -9,7 +9,6 @@ import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
     private final Session session;
-    private final UserDao userDaoJdbc = new UserDaoJDBCImpl();
     public UserDaoHibernateImpl() {
         session = Util.getSession();
     }
@@ -17,39 +16,50 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        userDaoJdbc.createUsersTable();
+        session.beginTransaction();
+
+        session.createSQLQuery("CREATE TABLE User (id BIGINT PRIMARY KEY AUTO_INCREMENT," +
+                " name VARCHAR(64), lastName VARCHAR(64), age TINYINT)").addEntity(User.class).executeUpdate();;
+
+        session.getTransaction().commit();
+        session.close();
     }
 
     @Override
     public void dropUsersTable() {
-        userDaoJdbc.dropUsersTable();
+        session.beginTransaction();
+
+        session.createSQLQuery("DROP TABLE IF EXISTS User").addEntity(User.class).executeUpdate();;
+
+        session.getTransaction().commit();
+        session.close();
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
         User user = new User(name, lastName, age);
-        Transaction tx1 = session.beginTransaction();
+        session.beginTransaction();
         session.save(user);
-        tx1.commit();
-        session.close();
+        session.getTransaction().commit();
     }
 
     @Override
     public void removeUserById(long id) {
-        User user = new User(name, lastName, age);
-        Transaction tx1 = session.beginTransaction();
-        session.remove();
-        tx1.commit();
-        session.close();
+        session.beginTransaction();
+        User user = session.get(User.class, id);
+        session.delete(user);
+        session.getTransaction().commit();
     }
 
     @Override
     public List<User> getAllUsers() {
-        return null;
+        return session.createQuery("from Student", User.class).list();
     }
 
     @Override
     public void cleanUsersTable() {
-
+        session.beginTransaction();
+        session.createQuery("delete from User").executeUpdate();
+        session.getTransaction().commit();
     }
 }

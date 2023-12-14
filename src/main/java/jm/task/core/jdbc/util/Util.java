@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
 
 import javax.imageio.spi.ServiceRegistry;
 import java.io.IOException;
@@ -19,19 +20,52 @@ import java.util.Properties;
 public class Util {
     private static final Connection connection;
     private static final Session session;
+    private static final Properties properties;
+    private static final String hostName;
+    private static final String dbName;
+    private static final String password;
+    private static final String userName;
+    private static final String connectionString;
 
     static {
-        Configuration configuration = new Configuration().configure();
+        try {
+            properties = new Properties();
+            loadProperties(properties);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        hostName = properties.getProperty("hostName");
+        dbName = properties.getProperty("dbName");
+        userName = properties.getProperty("username");
+        password = properties.getProperty("password");
+        connectionString = "jdbc:mysql://" + hostName + ":3306/" + dbName;
+    }
+    static {
+        Configuration configuration = new Configuration();
+
+        Properties hibernateProperties = new Properties();
+        hibernateProperties.put(Environment.DRIVER, "com.mysql.cj.jdbc.Driver");
+        hibernateProperties.put(Environment.URL, connectionString);
+        hibernateProperties.put(Environment.USER, userName);
+        hibernateProperties.put(Environment.PASS, password);
+        hibernateProperties.put(Environment.DIALECT, "org.hibernate.dialect.MySQL5Dialect");
+        hibernateProperties.put(Environment.SHOW_SQL, "true");
+        hibernateProperties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+        hibernateProperties.put(Environment.HBM2DDL_AUTO, "");
+
+        configuration.setProperties(hibernateProperties);
+
         configuration.addAnnotatedClass(User.class);
 
         StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder().applySettings(configuration.getProperties());
+
         session = configuration.buildSessionFactory(builder.build()).openSession();
     }
 
     static {
         try {
-            connection = getMySQLConnection();
-        } catch (SQLException | ClassNotFoundException | IOException e) {
+            connection = getMySQLConnection(hostName, dbName, userName, password);
+        } catch (SQLException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
@@ -42,21 +76,11 @@ public class Util {
     public static Session getSession() {
         return session;
     }
-
-    public static Connection getMySQLConnection() throws SQLException,
-            ClassNotFoundException, IOException {
-        Properties props = new Properties();
+    public static void loadProperties(Properties properties) throws IOException {
         try(InputStream in = Files.newInputStream(Paths.get("src/main/java/jm/task/core/jdbc/util/database.properties"))){
-            props.load(in);
+            properties.load(in);
         }
-        String hostName = props.getProperty("hostName");
-        String dbName = props.getProperty("dbName");
-        String userName = props.getProperty("username");
-        String password = props.getProperty("password");
-
-        return getMySQLConnection(hostName, dbName, userName, password);
     }
-
 
     public static Connection getMySQLConnection(String hostName, String dbName,
                                                 String userName, String password) throws SQLException,
@@ -64,9 +88,7 @@ public class Util {
 
         Class.forName("com.mysql.jdbc.Driver");
 
-        String connectionURL = "jdbc:mysql://" + hostName + ":3306/" + dbName;
-
-        return DriverManager.getConnection(connectionURL, userName,
+        return DriverManager.getConnection(connectionString, userName,
                 password);
     }
 
