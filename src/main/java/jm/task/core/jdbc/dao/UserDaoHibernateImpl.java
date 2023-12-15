@@ -10,6 +10,7 @@ import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
     private final SessionFactory sessionFactory;
+    Transaction tx1;
     public UserDaoHibernateImpl() {
         sessionFactory = Util.getSessionFactory();
     }
@@ -18,25 +19,27 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public void createUsersTable() {
         try (Session session = sessionFactory.openSession()) {
-            Transaction tx1 = session.beginTransaction();
+            tx1 = session.beginTransaction();
 
             session.createSQLQuery("CREATE TABLE User (id BIGINT PRIMARY KEY AUTO_INCREMENT," +
                     " name VARCHAR(64), lastName VARCHAR(64), age TINYINT)").addEntity(User.class).executeUpdate();
 
             tx1.commit();
         } catch (Exception ignored) {
+            tx1.rollback();
         }
     }
 
     @Override
     public void dropUsersTable() {
         try (Session session = sessionFactory.openSession()) {
-            Transaction tx1 = session.beginTransaction();
+            tx1 = session.beginTransaction();
 
             session.createSQLQuery("DROP TABLE IF EXISTS User").addEntity(User.class).executeUpdate();
 
             tx1.commit();
         } catch (Exception ignored) {
+            tx1.rollback();
         }
     }
 
@@ -47,6 +50,8 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction tx1 = session.beginTransaction();
             session.save(user);
             tx1.commit();
+        } catch (Exception e) {
+            tx1.rollback();
         }
 
     }
@@ -58,6 +63,8 @@ public class UserDaoHibernateImpl implements UserDao {
             User user = session.get(User.class, id);
             session.delete(user);
             tx1.commit();
+        } catch (Exception e) {
+            tx1.rollback();
         }
     }
 
@@ -74,6 +81,8 @@ public class UserDaoHibernateImpl implements UserDao {
             Transaction tx1 = session.beginTransaction();
             session.createQuery("delete from User").executeUpdate();
             tx1.commit();
+        } catch (Exception e) {
+            tx1.rollback();
         }
     }
 }
